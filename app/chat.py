@@ -2,8 +2,9 @@ import streamlit as st
 import os
 from openai import OpenAI
 from secret_keys import openai_api_key
-from app.myjsondb.myStreamlit import getValueByFormnameAndKeyName
-from app.myjsondb.myStreamlit import upsertValueByFormnameAndKeyName, getValueListByFormnameAndKeyName
+import pandas as pd
+from app.myjsondb.myStreamlit import getValueByFormnameAndKeyName, upsertValueByFormnameAndKeyName, getValueListByFormnameAndKeyName
+from app.myjsondb.myHistory import getValByKey, upsertValByKey, getAllHistory
 
 client = OpenAI(
   api_key=openai_api_key
@@ -68,15 +69,17 @@ def fetch_files_and_contents(directory, ignorelist):
 def createPromt(_prerequisites, _input, _src_root_path, _ignorelist):
     _content = f"""
 # 命令指示書
-    - 前提と現在のソースコードと要求と制約から最高の成果物を生成してください。
+- 前提と現在のソースコードと要求と制約から最高の成果物を生成してください。
 
 ### 前提
 {_prerequisites}
 
 ### 制約
-    - 新規にインストールが必要なライブラリを明確にすること
-    - 新規に作成が必要なファイル名を明確にすること
-    - UIの構成要素を言語化し、各コンポーネントの全体における位置付けを明確にすること
+- アウトプットはmarkdown形式とし、かならずアンカーリンクを設定すること
+- 要求文書を適切な表現に変換すること
+- UIの構成要素を言語化し、各コンポーネントとソースファイルの位置付けを明確にすること
+- 新規にインストールが必要な場合、ライブラリのインストール方法を明確にすること
+- 新規にファイル作成が必要な場合、名称と拡張子も明確にしソースコードをフルで出力すること
 
 ### 要求
 {_input}
@@ -93,6 +96,7 @@ def createPromt(_prerequisites, _input, _src_root_path, _ignorelist):
 
 # チャットボットとやりとりする関数
 def communicate(_selected_model, selected_programing_model):
+    st.session_state[SS_MESSAGES] = []
     messages = st.session_state[SS_MESSAGES]
     request_messages = []
     
@@ -100,6 +104,7 @@ def communicate(_selected_model, selected_programing_model):
 
     _systemrole_content = getValueByFormnameAndKeyName("chat", "systemrole", selected_programing_model)        
     request_messages.append({"role": "system", "content": _systemrole_content["system_role"]})
+    messages.append({"role": "system", "content": _systemrole_content["system_role"]})
 
     _content = createPromt(
         _systemrole_content["prerequisites"],
@@ -109,6 +114,7 @@ def communicate(_selected_model, selected_programing_model):
     )
     user_message = {"role": "user", "content": _content}
     request_messages.append(user_message)
+    messages.append(user_message)
 
     response = client.chat.completions.create(
         model=_selected_model,
@@ -129,10 +135,14 @@ def communicate(_selected_model, selected_programing_model):
 def session_control(_selected_model, selected_programing_model):
     print("-- 21 --")
     request_messages = communicate(_selected_model, selected_programing_model)
-    upsertValueByFormnameAndKeyName("chat", "history",
-                                    {
-                                        "test":request_messages
-                                    })
+
+    upsertValByKey(_selected_model, st.session_state["user_input"], request_messages)
+    #upsertValueByFormnameAndKeyName(
+    #    "chat",
+    #    "history",
+    #    {
+    #        "test": request_messages
+    #    })
     st.session_state["user_input"] = ""  # 入力欄を消去
     return
 
@@ -141,21 +151,13 @@ def init_session():
     if SS_USER_INPUT not in st.session_state:
         st.session_state[SS_USER_INPUT] = ""
 
-    # st.session_stateを使いメッセージのやりとりを保存
     if SS_MESSAGES not in st.session_state:
-        st.session_state[SS_MESSAGES] = [
-            {"role": "system", "content": "あなたは優秀なアシスタントAIです。"}
-           ]
+        st.session_state[SS_MESSAGES] = []
 
 
-def buildChatMessageFromSession(_key):
-    if "" == _key:
-        messages = st.session_state[SS_MESSAGES]
-    elif _key is None:
-        messages = st.session_state[SS_MESSAGES]
-    else:
-        messages = getValueByFormnameAndKeyName("chat", "history", _key)
-
+def buildChatMessageFromSession():
+    messages = st.session_state[SS_MESSAGES]
+    
     for message in messages[1:]:  # 直近のメッセージを上に
         speaker = "<you>🙂"
         if message["role"] == "assistant":
@@ -174,7 +176,7 @@ def getProgramingLanguage():
     return tuple(getValueByFormnameAndKeyName("chat", "systemrole", "プログラミング言語"))
 
 
-def mainui(_title, _key):
+def mainui(_title):
     print("-- 11 --")
     # ユーザーインターフェイスの構築
     st.title(_title)
@@ -207,11 +209,49 @@ def mainui(_title, _key):
             selected_programing_model,)
         )
 
-    buildChatMessageFromSession(_key)
+    buildChatMessageFromSession()
+
+
+def historyArea():
+    #selected_page = st.selectbox("Choose a page:", getAllHistory())
+    df = pd.DataFrame(getAllHistory())
+    st.dataframe(df)
+    selected_index = st.number_input('Enter row index to plot:', min_value=0, max_value=len(df)-1, value=0, step=1)
+
+    # 選択された行のデータを取得
+    if 0 <= selected_index < len(df):
+        subset_df = df.iloc[[selected_index]]
+        messages = getValByKey(subset_df["gptmodel"][selected_index], subset_df["input"][selected_index])
+        st.write(subset_df["registration_date"][selected_index])
+        st.write(subset_df["input"][selected_index])
+        for message in messages[1:]:  # 直近のメッセージを上に
+            speaker = "<you>🙂"
+            if message["role"] == "assistant":
+                speaker = "<Agent>🤖"
+                st.markdown(message["content"], unsafe_allow_html=True)
+            else:
+                with st.expander(speaker):
+                    st.markdown(message["content"], unsafe_allow_html=True)
+
+    """
+    if selected_page is not None:
+        st.write(selected_page["registration_date"])
+        messages = getValByKey(selected_page["gptmodel"], selected_page["input"])
+        for message in messages[1:]:  # 直近のメッセージを上に
+            speaker = "<you>🙂"
+            if message["role"] == "assistant":
+                speaker = "<Agent>🤖"
+
+            with st.expander(speaker):
+                st.markdown(message["content"], unsafe_allow_html=True)
+    """
 
 def chat(_title):
     tab1, tab2 = st.tabs(["chat", "history"])
+
     print("-- 01 --")
-    st.sidebar.title("History")
-    selected_page = st.sidebar.selectbox("Choose a page:", getValueListByFormnameAndKeyName("chat", "history"))
-    mainui(_title, selected_page)
+    with tab1:
+        mainui(_title)
+    
+    with tab2:
+        historyArea()
