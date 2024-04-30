@@ -13,9 +13,6 @@ client = OpenAI(
 SS_USER_INPUT = "user_input"
 SS_MESSAGES = "messages"
 
-IGNORE_FILE_LIST = [
-    ".DS_Store"
-]
 
 def escape(_instr):
     return _instr.replace('"', '\\"').replace('`', '\\`')
@@ -28,8 +25,8 @@ def fetch_packagejson_and_contents():
         outstr = ""
         with open("./front/package.json", 'r', encoding='utf-8') as file:
             content = file.read()
-            all_files.append("- filename:./front/package.json")
-            all_files.append("```")
+            all_files.append(" - filename:./front/package.json")
+            all_files.append("```json")
             all_files.append(content)
             all_files.append("```")
             all_files.append("")
@@ -40,22 +37,25 @@ def fetch_packagejson_and_contents():
         return "", ""
 
 
-def fetch_files_and_contents(directory):
+def fetch_files_and_contents(directory, ignorelist):
     all_files = []
     outstr = ""
     # os.walk()を使用してディレクトリを再帰的に走査
     for root, dirs, files in os.walk(directory):
         for filename in files:
-            if filename not in IGNORE_FILE_LIST:
+            if filename not in ignorelist:
                 # ファイルの完全なパスを取得
                 file_path = os.path.join(root, filename)
                 
                 # ファイルを開き、内容を読み込む
                 try:
+                    # 拡張子を取得
+                    _, file_extension = os.path.splitext(file_path)
+                    file_extension = file_extension.lstrip('.')
                     with open(file_path, 'r', encoding='utf-8') as file:
                         content = file.read()
-                        all_files.append(f"- filename:{file_path}")
-                        all_files.append("```")
+                        all_files.append(f" - filename:{file_path}")
+                        all_files.append(f"```{file_extension}")
                         all_files.append(content)
                         all_files.append("```")
                         all_files.append("")
@@ -65,26 +65,28 @@ def fetch_files_and_contents(directory):
     return outstr
 
 
-def createPromt(_prerequisites, _input, _src_root_path):
+def createPromt(_prerequisites, _input, _src_root_path, _ignorelist):
     _content = f"""
-    前提と現在のソースコードと要求と制約から最高の成果物を生成してください。
+# 命令指示書
+    - 前提と現在のソースコードと要求と制約から最高の成果物を生成してください。
 
-    # 前提
-    {_prerequisites}
+### 前提
+{_prerequisites}
 
-    # 制約
+### 制約
     - 新規にインストールが必要なライブラリを明確にすること
     - 新規に作成が必要なファイル名を明確にすること
     - UIの構成要素を言語化し、各コンポーネントの全体における位置付けを明確にすること
 
-    # 要求
-    {_input}
+### 要求
+{_input}
 
-    # 現在のpackage.json
-    {fetch_packagejson_and_contents()}
+### 現在のpackage.json
+{fetch_packagejson_and_contents()}
 
-    # 現在のソースコード
-    {fetch_files_and_contents(_src_root_path)}
+### 現在のソースコード
+{fetch_files_and_contents(_src_root_path, _ignorelist)}
+
     """
     return _content
 
@@ -102,7 +104,9 @@ def communicate(_selected_model, selected_programing_model):
     _content = createPromt(
         _systemrole_content["prerequisites"],
         st.session_state[SS_USER_INPUT],
-        _systemrole_content["srcdire"])
+        _systemrole_content["srcdire"],
+        _systemrole_content["ignorelist"]
+    )
     user_message = {"role": "user", "content": _content}
     request_messages.append(user_message)
 
@@ -147,7 +151,7 @@ def init_session():
 def buildChatMessageFromSession(_key):
     if "" == _key:
         messages = st.session_state[SS_MESSAGES]
-    elif None == _key:
+    elif _key is None:
         messages = st.session_state[SS_MESSAGES]
     else:
         messages = getValueByFormnameAndKeyName("chat", "history", _key)
@@ -157,7 +161,9 @@ def buildChatMessageFromSession(_key):
         if message["role"] == "assistant":
             speaker = "<Agent>🤖"
 
-        st.write(speaker + ": " + message["content"])
+        with st.expander(speaker):
+            st.markdown(message["content"], unsafe_allow_html=True)
+        # st.write(speaker + ": " + message["content"])
 
 
 def getModelList():
@@ -176,8 +182,6 @@ def mainui(_title, _key):
     st.write("ChatGPT APIを使ったチャットボットです。")
 
     init_session()
-
-    buildChatMessageFromSession(_key)
 
     selected_model = st.selectbox(
         "Choose Gpt Model",
@@ -203,8 +207,10 @@ def mainui(_title, _key):
             selected_programing_model,)
         )
 
+    buildChatMessageFromSession(_key)
 
 def chat(_title):
+    tab1, tab2 = st.tabs(["chat", "history"])
     print("-- 01 --")
     st.sidebar.title("History")
     selected_page = st.sidebar.selectbox("Choose a page:", getValueListByFormnameAndKeyName("chat", "history"))
