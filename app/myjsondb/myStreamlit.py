@@ -38,9 +38,6 @@ def getValueListByFormnameAndKeyName(_formname, _keyname):
     myStreamlitDo.formname = _formname
     myStreamlitDo.keyname = _keyname
     for a in MyStremalit.jsondb.getByQuery(myStreamlitDo.to_query_dict()):
-        print("------------") 
-        print(a)
-        print(a["value"].keys())
         return a["value"].keys()
     return []
 

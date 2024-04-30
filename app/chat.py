@@ -13,46 +13,56 @@ client = OpenAI(
 SS_USER_INPUT = "user_input"
 SS_MESSAGES = "messages"
 
+IGNORE_FILE_LIST = [
+    ".DS_Store"
+]
+
+def escape(_instr):
+    return _instr.replace('"', '\\"').replace('`', '\\`')
+
 
 def fetch_packagejson_and_contents():
-    all_files = []
     # ファイルを開き、内容を読み込む
     try:
+        all_files = []
+        outstr = ""
         with open("./front/package.json", 'r', encoding='utf-8') as file:
-            content = file.read().replace('"', '\\"')
+            content = file.read()
             all_files.append("- filename:./front/package.json")
-            all_files.append("\\`\\`\\`")
+            all_files.append("```")
             all_files.append(content)
-            all_files.append("\\`\\`\\`")
+            all_files.append("```")
             all_files.append("")
+        outstr = '\n'.join(str(elem) for elem in all_files)
+        return outstr
     except (UnicodeDecodeError, IOError):
         print("Error reading ./front/package.json. It may not be a text file or might have encoding issues.")
-    return '\n'.join(str(elem) for elem in all_files)
+        return "", ""
 
 
 def fetch_files_and_contents(directory):
     all_files = []
-    
+    outstr = ""
     # os.walk()を使用してディレクトリを再帰的に走査
     for root, dirs, files in os.walk(directory):
         for filename in files:
-            if ".DS_Store" != filename:
+            if filename not in IGNORE_FILE_LIST:
                 # ファイルの完全なパスを取得
                 file_path = os.path.join(root, filename)
                 
                 # ファイルを開き、内容を読み込む
                 try:
                     with open(file_path, 'r', encoding='utf-8') as file:
-                        content = file.read().replace('"', '\\"')
+                        content = file.read()
                         all_files.append(f"- filename:{file_path}")
-                        all_files.append("\\`\\`\\`")
+                        all_files.append("```")
                         all_files.append(content)
-                        all_files.append("\\`\\`\\`")
+                        all_files.append("```")
                         all_files.append("")
                 except (UnicodeDecodeError, IOError):
                     print(f"Error reading {file_path}. It may not be a text file or might have encoding issues.")
-
-    return '\n'.join(str(elem) for elem in all_files) 
+    outstr = '\n'.join(str(elem) for elem in all_files)
+    return outstr
 
 
 def createPromt(_prerequisites, _input, _src_root_path):
@@ -84,7 +94,7 @@ def communicate(_selected_model, selected_programing_model):
     messages = st.session_state[SS_MESSAGES]
     request_messages = []
     
-    messages.append({"role": "system", "content": st.session_state[SS_USER_INPUT]})
+    # messages.append({"role": "system", "content": st.session_state[SS_USER_INPUT]})
 
     _systemrole_content = getValueByFormnameAndKeyName("chat", "systemrole", selected_programing_model)        
     request_messages.append({"role": "system", "content": _systemrole_content["system_role"]})
@@ -107,14 +117,17 @@ def communicate(_selected_model, selected_programing_model):
     }
         
     messages.append(bot_message)
+    request_messages.append(bot_message)
+
+    return request_messages
 
 
 def session_control(_selected_model, selected_programing_model):
     print("-- 21 --")
-    communicate(_selected_model, selected_programing_model)
+    request_messages = communicate(_selected_model, selected_programing_model)
     upsertValueByFormnameAndKeyName("chat", "history",
                                     {
-                                        "test":st.session_state[SS_MESSAGES]
+                                        "test":request_messages
                                     })
     st.session_state["user_input"] = ""  # 入力欄を消去
     return
@@ -195,5 +208,4 @@ def chat(_title):
     print("-- 01 --")
     st.sidebar.title("History")
     selected_page = st.sidebar.selectbox("Choose a page:", getValueListByFormnameAndKeyName("chat", "history"))
-    print(selected_page)
     mainui(_title, selected_page)
