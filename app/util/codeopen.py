@@ -1,0 +1,57 @@
+import os
+
+
+def escape(_instr):
+    return _instr.replace('"', '\\"').replace('`', '\\`')
+
+
+def fetch_libraryfiles_and_contents(_file_list):
+    # ファイルを開き、内容を読み込む
+    all_files = []
+    outstr = ""
+    print(_file_list)
+    for file_path in _file_list:
+        try:
+            # 拡張子を取得
+            print(file_path)
+            _, file_extension = os.path.splitext(file_path)
+            file_extension = file_extension.lstrip('.')
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+                all_files.append(f" - filename:{file_path}")
+                all_files.append(f"```{file_extension}")
+                all_files.append(content)
+                all_files.append("```")
+                all_files.append("")
+        except (UnicodeDecodeError, IOError):
+            print("Error reading ./front/package.json. It may not be a text file or might have encoding issues.")
+    outstr = '\n'.join(str(elem) for elem in all_files)
+    return outstr
+
+
+def fetch_files_and_contents(directory, ignorelist):
+    all_files = []
+    outstr = ""
+    # os.walk()を使用してディレクトリを再帰的に走査
+    for root, dirs, files in os.walk(directory):
+        for filename in files:
+            if filename not in ignorelist:
+                # ファイルの完全なパスを取得
+                file_path = os.path.join(root, filename)
+
+                # ファイルを開き、内容を読み込む
+                try:
+                    # 拡張子を取得
+                    _, file_extension = os.path.splitext(file_path)
+                    file_extension = file_extension.lstrip('.')
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        content = file.read()
+                        all_files.append(f" - filename:{file_path}")
+                        all_files.append(f"```{file_extension}")
+                        all_files.append(content)
+                        all_files.append("```")
+                        all_files.append("")
+                except (UnicodeDecodeError, IOError):
+                    print(f"Error reading {file_path}. It may not be a text file or might have encoding issues.")
+    outstr = '\n'.join(str(elem) for elem in all_files)
+    return outstr

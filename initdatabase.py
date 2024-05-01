@@ -22,6 +22,9 @@ def initdata():
             "プログラミング言語": ["Next.js"],
             "Next.js": {
                 "srcdire": "./front/src",
+                "libraryFileList": [
+                    "./front/package.json"
+                ],
                 "prerequisites": "'./front'ディレクトリにてNext.jsのフロントエンドを開発しています",
                 "system_role": "あなたは優秀なNext.jsのフロントエンドエンジニアです。入力された情報を元に最高のコードをアウトプットします。",
                 "ignorelist": [

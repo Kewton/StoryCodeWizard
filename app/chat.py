@@ -1,98 +1,16 @@
 import streamlit as st
-import os
-from openai import OpenAI
-from secret_keys import openai_api_key
 import pandas as pd
 from app.myjsondb.myStreamlit import getValueByFormnameAndKeyName
 from app.myjsondb.myHistory import getValByKey, upsertValByKey, getAllHistory, deleteByKey
+from app.prompt import createPromt
+from app.util.execLlmApi import execLlmApi
 
-client = OpenAI(
-  api_key=openai_api_key
-)
+
+
 
 # sesson state key
 SS_USER_INPUT = "user_input"
 SS_MESSAGES = "messages"
-
-
-def escape(_instr):
-    return _instr.replace('"', '\\"').replace('`', '\\`')
-
-
-def fetch_packagejson_and_contents():
-    # ファイルを開き、内容を読み込む
-    try:
-        all_files = []
-        outstr = ""
-        with open("./front/package.json", 'r', encoding='utf-8') as file:
-            content = file.read()
-            all_files.append(" - filename:./front/package.json")
-            all_files.append("```json")
-            all_files.append(content)
-            all_files.append("```")
-            all_files.append("")
-        outstr = '\n'.join(str(elem) for elem in all_files)
-        return outstr
-    except (UnicodeDecodeError, IOError):
-        print("Error reading ./front/package.json. It may not be a text file or might have encoding issues.")
-        return "", ""
-
-
-def fetch_files_and_contents(directory, ignorelist):
-    all_files = []
-    outstr = ""
-    # os.walk()を使用してディレクトリを再帰的に走査
-    for root, dirs, files in os.walk(directory):
-        for filename in files:
-            if filename not in ignorelist:
-                # ファイルの完全なパスを取得
-                file_path = os.path.join(root, filename)
-
-                # ファイルを開き、内容を読み込む
-                try:
-                    # 拡張子を取得
-                    _, file_extension = os.path.splitext(file_path)
-                    file_extension = file_extension.lstrip('.')
-                    with open(file_path, 'r', encoding='utf-8') as file:
-                        content = file.read()
-                        all_files.append(f" - filename:{file_path}")
-                        all_files.append(f"```{file_extension}")
-                        all_files.append(content)
-                        all_files.append("```")
-                        all_files.append("")
-                except (UnicodeDecodeError, IOError):
-                    print(f"Error reading {file_path}. It may not be a text file or might have encoding issues.")
-    outstr = '\n'.join(str(elem) for elem in all_files)
-    return outstr
-
-
-def createPromt(_prerequisites, _input, _src_root_path, _ignorelist):
-    _content = f"""
-# 命令指示書
-- 前提と現在のソースコードと要求と制約から最高の成果物を生成してください。
-
-### 前提
-{_prerequisites}
-
-### 制約
-- アウトプットはmarkdown形式とすること
-- 要求文書を適切な表現に変換すること
-- UIの構成要素を言語化し、各コンポーネントとソースファイルの位置付けを明確にすること
-- 新規にインストールが必要な場合、ライブラリのインストール方法を明確にすること
-- 新規にファイル作成が必要な場合、名称と拡張子も明確にしソースコードをフルで出力すること
-- git への commit コメントを出力すること
-
-### 要求
-{_input}
-
-### 現在のpackage.json
-{fetch_packagejson_and_contents()}
-
-### 現在のソースコード
-{fetch_files_and_contents(_src_root_path, _ignorelist)}
-
-    """
-    return _content
 
 
 # チャットボットとやりとりする関数
@@ -104,18 +22,13 @@ def communicate(_selected_model, selected_programing_model):
     messages.append({"role": "system", "content": _systemrole_content["system_role"]})
 
     _content = createPromt(
-        _systemrole_content["prerequisites"],
-        st.session_state[SS_USER_INPUT],
-        _systemrole_content["srcdire"],
-        _systemrole_content["ignorelist"]
+        _systemrole_content,
+        st.session_state[SS_USER_INPUT]
     )
     user_message = {"role": "user", "content": _content}
     messages.append(user_message)
 
-    response = client.chat.completions.create(
-        model=_selected_model,
-        messages=messages
-    )
+    response = execLlmApi(_selected_model, messages)
 
     bot_message = {
         "content": response.choices[0].message.content,
@@ -127,8 +40,7 @@ def communicate(_selected_model, selected_programing_model):
     return messages
 
 
-def session_control(_selected_model, selected_programing_model):
-    print("-- 21 --")
+def story2code(_selected_model, selected_programing_model):
     request_messages = communicate(_selected_model, selected_programing_model)
 
     upsertValByKey(_selected_model, st.session_state["user_input"], request_messages)
@@ -144,8 +56,7 @@ def init_session():
         st.session_state[SS_MESSAGES] = []
 
 
-def buildChatMessageFromSession():
-    messages = st.session_state[SS_MESSAGES]
+def buildChatMessageFromSession(messages):
 
     for message in messages[1:]:  # 直近のメッセージを上に
         speaker = "<you>🙂"
@@ -189,14 +100,15 @@ def mainui(_title):
 
         st.button(
             "Submit",
-            on_click=session_control,
+            on_click=story2code,
             args=(
                 selected_model,
                 selected_programing_model,)
             )
 
     with col2:
-        buildChatMessageFromSession()
+        messages = st.session_state[SS_MESSAGES]
+        buildChatMessageFromSession(messages)
 
 
 def delete_history(subset_df, selected_index):
@@ -219,8 +131,7 @@ def historyArea():
         # 選択された行のデータを取得
         if len(df) > 0:
             if 0 <= selected_index < len(df):
-                subset_df = df.iloc[[selected_index]]
-                messages = getValByKey(subset_df["gptmodel"][selected_index], subset_df["input"][selected_index])
+                messages = getValByKey(df["gptmodel"][selected_index], df["input"][selected_index])
 
                 # 初期ステートの設定
                 if 'show_choices' not in st.session_state:
@@ -239,7 +150,7 @@ def historyArea():
                     if st.button('Confirm'):
                         st.session_state.confirmed = True
                         if choice == 'Yes':
-                            delete_history(subset_df, selected_index)
+                            delete_history(df, selected_index)
                             st.session_state.message = "deleted."
                         else:
                             st.session_state.message = "You chose not to continue."
@@ -249,18 +160,11 @@ def historyArea():
                 if st.session_state.confirmed:
                     st.write(st.session_state.message)
 
-                st.write(subset_df["gptmodel"][selected_index])
-                st.write(subset_df["registration_date"][selected_index])
-                st.write(subset_df["input"][selected_index])
-                for message in messages[1:]:  # 直近のメッセージを上に
-                    speaker = "<you>🙂"
-                    if message["role"] == "assistant":
-                        speaker = "<Agent>🤖"
-                        st.write(speaker + ": content")
-                        st.markdown(message["content"], unsafe_allow_html=True)
-                    else:
-                        with st.expander(speaker + ": content"):
-                            st.markdown(message["content"], unsafe_allow_html=True)
+                st.write(df["gptmodel"][selected_index])
+                st.write(df["registration_date"][selected_index])
+                st.write(df["input"][selected_index])
+
+                buildChatMessageFromSession(messages)
 
 
 def chat(_title):
