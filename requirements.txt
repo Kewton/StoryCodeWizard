@@ -1,4 +1,3 @@
 git+https://github.com/Kewton/jsonDB
 streamlit
-python-dotenv
 openai

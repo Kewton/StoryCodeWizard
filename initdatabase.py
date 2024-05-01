@@ -3,18 +3,6 @@ from app.myjsondb.myStreamlit import upsertValueByFormnameAndKeyName
 
 def initdata():
     upsertValueByFormnameAndKeyName(
-        "main",
-        "form_menu",
-        {
-            "form_menu": [
-                "チャット",
-                "ドキュメント登録",
-                "ドキュメント編集"
-            ]
-        }
-    )
-
-    upsertValueByFormnameAndKeyName(
         "chat",
         "gpt",
         {

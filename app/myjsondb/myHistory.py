@@ -57,3 +57,11 @@ def upsertValByKey(_gptmodel, input, contentList):
     myHistoryDo_systemrole.contentList = contentList
 
     MyHistory.upsertByprimaryKey(myHistoryDo_systemrole)
+
+
+def deleteByKey(_gptmodel, _input, _registration_date):
+    myHistoryDo_systemrole = MyHistoryDo()
+    myHistoryDo_systemrole.gptmodel = _gptmodel
+    myHistoryDo_systemrole.input = _input
+    myHistoryDo_systemrole.registration_date = _registration_date
+    MyHistory.delete(myHistoryDo_systemrole)
