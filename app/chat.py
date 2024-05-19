@@ -4,8 +4,7 @@ from app.myjsondb.myStreamlit import getValueByFormnameAndKeyName
 from app.myjsondb.myHistory import getValByKey, upsertValByKey, getAllHistory, deleteByKey
 from app.prompt import createPromt
 from app.util.execLlmApi import execLlmApi
-
-
+import base64
 
 
 # sesson state key
@@ -14,7 +13,7 @@ SS_MESSAGES = "messages"
 
 
 # チャットボットとやりとりする関数
-def communicate(_selected_model, selected_programing_model):
+def communicate(_selected_model, selected_programing_model, encoded_file):
     st.session_state[SS_MESSAGES] = []
     messages = st.session_state[SS_MESSAGES]
 
@@ -28,11 +27,11 @@ def communicate(_selected_model, selected_programing_model):
     user_message = {"role": "user", "content": _content}
     messages.append(user_message)
 
-    response = execLlmApi(_selected_model, messages)
+    message_content, message_role = execLlmApi(_selected_model, messages, encoded_file)
 
     bot_message = {
-        "content": response.choices[0].message.content,
-        "role": response.choices[0].message.role
+        "content": message_content,
+        "role": message_role
     }
 
     messages.append(bot_message)
@@ -40,8 +39,8 @@ def communicate(_selected_model, selected_programing_model):
     return messages
 
 
-def story2code(_selected_model, selected_programing_model):
-    request_messages = communicate(_selected_model, selected_programing_model)
+def story2code(_selected_model, selected_programing_model, encoded_file):
+    request_messages = communicate(_selected_model, selected_programing_model ,encoded_file)
 
     upsertValByKey(_selected_model, st.session_state["user_input"], request_messages)
     st.session_state["user_input"] = ""  # 入力欄を消去
@@ -68,6 +67,9 @@ def buildChatMessageFromSession(messages):
             with st.expander(speaker + ": content"):
                 st.markdown(message["content"], unsafe_allow_html=True)
 
+            with open("./output.txt", "w") as file:
+                file.write(message["content"])
+
 
 def getModelList():
     return tuple(getValueByFormnameAndKeyName("chat", "gpt", "gpt_model"))
@@ -77,7 +79,7 @@ def getProgramingLanguage():
     return tuple(getValueByFormnameAndKeyName("chat", "systemrole", "プログラミング言語"))
 
 
-def mainui(_title):
+def mainui():
     col1, col2 = st.columns(2)
 
     init_session()
@@ -94,16 +96,28 @@ def mainui(_title):
             key="selected_programing_language")
 
         st.text_area(
-            "メッセージを入力してください。",
+            "ユーザーストーリを入力してください。",
             key="user_input",
             value=st.session_state[SS_USER_INPUT])
 
+        # ファイルアップロード
+        uploaded_file = st.file_uploader("ファイルをアップロードしてください", type=['jpeg'])
+        encoded_file = ""
+
+        if uploaded_file is not None:
+            # ファイルの内容を読み込み
+            file_contents = uploaded_file.read()
+            
+            # base64エンコード
+            encoded_file = base64.b64encode(file_contents).decode('utf-8')
+
         st.button(
-            "Submit",
+            "実行",
             on_click=story2code,
             args=(
                 selected_model,
-                selected_programing_model,)
+                selected_programing_model,
+                encoded_file,)
             )
 
     with col2:
@@ -167,12 +181,13 @@ def historyArea():
                 buildChatMessageFromSession(messages)
 
 
-def chat(_title):
+def chat():
     st.set_page_config(layout="wide")
-    tab1, tab2 = st.tabs(["chat", "history"])
+    st.title("StoryCodeWizard")
+    tab1, tab2 = st.tabs(["stroy2code", "history"])
 
     with tab1:
-        mainui(_title)
+        mainui()
 
     with tab2:
         historyArea()
