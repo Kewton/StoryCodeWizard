@@ -7,6 +7,7 @@ def initdata():
         "gpt",
         {
             "gpt_model": [
+                "gpt-4o",
                 "gpt-4",
                 "gpt-3.5-turbo",
                 "gpt-4-32k",
@@ -22,17 +23,30 @@ def initdata():
         "chat",
         "systemrole",
         {
-            "プログラミング言語": ["Next.js"],
-            "Next.js": {
-                "srcdire": "./front/src",
+            "プログラミング言語": ["Next.js_1", "Next.js_2"],
+            "Next.js_1": {
+                "srcdire": "src",
                 "libraryFileList": [
-                    "./front/package.json"
+                    "package.json"
                 ],
-                "prerequisites": "'./front'ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のチャット体験を提供します。",
+                "prerequisites": "ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のチャット体験を提供します。",
                 "system_role": "あなたは優秀なNext.jsのフロントエンドエンジニアです。入力された情報を元に最高のコードをアウトプットします。",
                 "ignorelist": [
                     ".DS_Store"
-                ]
+                ],
+                "prompt": "nextjstemplate1"
+            },
+            "Next.js_2": {
+                "srcdire": "src",
+                "libraryFileList": [
+                    "package.json"
+                ],
+                "prerequisites": "ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のユーザー体験を提供します。",
+                "system_role": "あなたは優秀なNext.jsのフロントエンドエンジニアです。入力された情報を元に最高のコードをアウトプットします。",
+                "ignorelist": [
+                    ".DS_Store"
+                ],
+                "prompt": "nextjstemplate2"
             }
         }
     )

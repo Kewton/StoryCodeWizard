@@ -14,10 +14,27 @@ claude_client = anthropic.Anthropic(
 
 def execLlmApi(_selected_model, _messages, encoded_file):
     if "gpt" in _selected_model:
-        response = chatgptapi_client.chat.completions.create(
-            model=_selected_model,
-            messages=_messages
-        )
+        if "gpt-4o" == _selected_model and len(encoded_file) > 0:
+            _inpurt_messages = []
+            _inpurt_messages.append(_messages[0])
+            _inpurt_messages.append(
+                {"role": "user", "content": [
+                    {"type": "text", "text": _messages[1]["content"]},
+                    {"type": "image_url", "image_url": {
+                        "url": f"data:image/jpeg;base64,{encoded_file}"}}
+                ]}
+            )
+            response = chatgptapi_client.chat.completions.create(
+                model=_selected_model,
+                messages=_inpurt_messages
+            )
+        else:
+            response = chatgptapi_client.chat.completions.create(
+                model=_selected_model,
+                messages=_messages
+            )
+        print("_messages = ")
+        print(_messages)
         return response.choices[0].message.content, response.choices[0].message.role
 
     elif "claude" in _selected_model:

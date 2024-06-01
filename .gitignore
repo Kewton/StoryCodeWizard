@@ -2,8 +2,7 @@ __pycache__/
 .venv/
 secret_keys.py
 mydb/
-front/
-front*/
+myproject/
 old/
-test*.py
-.DS_Store
+escape/
+output.txt

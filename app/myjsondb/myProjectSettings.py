@@ -3,7 +3,7 @@ from localjsondb.jsonDB import ValidatedSchemaFactory, BaseJsonDbORM, DoFactory
 
 class _MyProjectsettingsProp:
     projectname: str
-    srcdire: str = ""
+    pjdir: str = ""
     value: dict = {}
 
 
@@ -27,11 +27,11 @@ class MyProjectSettingsOrm(BaseJsonDbORM):
 MyProjectSettings = MyProjectSettingsOrm("myprojectSettings")
 
 
-def getSrcdireByPjnm(_projectname):
+def getPjdirByPjnm(_projectname):
     myProjectSettingsDo = MyProjectSettingsDo()
     myProjectSettingsDo.projectname = _projectname
     for a in MyProjectSettings.jsondb.getByQuery(myProjectSettingsDo.to_query_dict()):
-        return a["srcdire"]
+        return a["pjdir"]
 
     return {}
 
@@ -56,10 +56,10 @@ def getAllProject():
     return out
 
 
-def upsertSrcdireAndValueByPjnm(_projectname, _srcdire, _value):
+def upsertPjdirAndValueByPjnm(_projectname, _pjdir, _value):
     myProjectSettingsDo = MyProjectSettingsDo()
     myProjectSettingsDo.projectname = _projectname
-    myProjectSettingsDo.srcdire = _srcdire
+    myProjectSettingsDo.pjdir = _pjdir
     myProjectSettingsDo.value = _value
 
     MyProjectSettings.upsertByprimaryKey(myProjectSettingsDo)

@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 from app.myjsondb.myStreamlit import getValueByFormnameAndKeyName
-# from app.myjsondb.myHistory import getValByKey, upsertValByKey, getAllHistory, deleteByKey
 from app.myjsondb.myHistories import createProject, getProjectList, dropProject, upsertValToPjByKey, getAllHistoryOfPj, getValOfPjByKey, deletePjByKey
-from app.myjsondb.myProjectSettings import upsertSrcdireAndValueByPjnm, getSrcdireByPjnm, deletePjSettingsByKey, getAllProject
+from app.myjsondb.myProjectSettings import upsertPjdirAndValueByPjnm, getPjdirByPjnm, deletePjSettingsByKey, getAllProject
 from app.prompt import createPromt
 from app.util.execLlmApi import execLlmApi
 import base64
@@ -21,7 +20,7 @@ def communicate(selected_project, _selected_model, selected_programing_model, en
     messages = st.session_state[SS_MESSAGES]
 
     _systemrole_content = getValueByFormnameAndKeyName("chat", "systemrole", selected_programing_model)
-    _systemrole_content["srcdire"] = getSrcdireByPjnm(selected_project)
+    _systemrole_content["pjdir"] = getPjdirByPjnm(selected_project)
     messages.append({"role": "system", "content": _systemrole_content["system_role"]})
 
     _content = createPromt(
@@ -48,7 +47,7 @@ def story2code(selected_project, _selected_model, selected_programing_model, enc
 
     print(f"selected_project = {selected_project}")
     upsertValToPjByKey(_selected_model, st.session_state["user_input"], request_messages, selected_project)
-    # upsertValByKey(_selected_model, st.session_state["user_input"], request_messages)
+
     st.session_state["user_input"] = ""  # 入力欄を消去
     return
 
@@ -122,7 +121,7 @@ def mainui():
         if uploaded_file is not None:
             # ファイルの内容を読み込み
             file_contents = uploaded_file.read()
-            
+
             # base64エンコード
             encoded_file = base64.b64encode(file_contents).decode('utf-8')
 
@@ -145,7 +144,6 @@ def delete_history(subset_df, selected_index, selected_project):
     _gptmodel = subset_df["gptmodel"][selected_index]
     _input = subset_df["input"][selected_index]
     _registration_date = subset_df["registration_date"][selected_index]
-    # deleteByKey(_gptmodel, _input, _registration_date)
     deletePjByKey(_gptmodel, _input, _registration_date, selected_project)
 
 
@@ -167,7 +165,6 @@ def historyArea():
         # 選択された行のデータを取得
         if len(df) > 0:
             if 0 <= selected_index < len(df):
-                # messages = getValByKey(df["gptmodel"][selected_index], df["input"][selected_index])
                 messages = getValOfPjByKey(df["gptmodel"][selected_index], df["input"][selected_index], selected_project)
 
                 # 初期ステートの設定
@@ -217,9 +214,9 @@ def project():
             if os.path.isdir(dir_path):
                 if new_project_name:
                     createProject(new_project_name)
-                    upsertSrcdireAndValueByPjnm(new_project_name, dir_path, {"test": "sss"})
+                    upsertPjdirAndValueByPjnm(new_project_name, dir_path, {"test": "sss"})
                     st.success(f"プロジェクト '{new_project_name}' を追加しました。")
-                    st.success(f"指定されたディレクトリ: {getSrcdireByPjnm(new_project_name)}")
+                    st.success(f"指定されたディレクトリ: {getPjdirByPjnm(new_project_name)}")
                 else:
                     st.error("プロジェクト名を入力してください。")
             else:
@@ -230,7 +227,6 @@ def project():
     # プロジェクト一覧の表示と削除
     st.header("プロジェクト一覧")
     projects = getProjectList()
-    print(projects)
     if projects:
         for project_name in projects:
             st.write(f"- {project_name}")
@@ -245,7 +241,7 @@ def project():
 def chat():
     st.set_page_config(layout="wide")
     st.title("StoryCodeWizard")
-    tab1, tab2, tab3 = st.tabs(["stroy2code", "history", "project"])
+    tab1, tab2, tab3 = st.tabs(["Stroy2Code", "MyHistory", "Project List"])
 
     with tab1:
         mainui()
