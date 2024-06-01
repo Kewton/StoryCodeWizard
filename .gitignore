@@ -3,5 +3,7 @@ __pycache__/
 secret_keys.py
 mydb/
 front/
+front*/
 old/
 test*.py
+.DS_Store

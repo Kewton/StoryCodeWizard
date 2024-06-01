@@ -2,9 +2,13 @@ from app.util.codeopen import fetch_libraryfiles_and_contents, fetch_files_and_c
 
 
 def createPromt(_systemrole_content, _input):
-    _prerequisites = _systemrole_content["prerequisites"]
-    _libraryFileList = _systemrole_content["libraryFileList"]
-    _src_root_path = _systemrole_content["srcdire"]
+    _prerequisites = _systemrole_content["srcdire"] + _systemrole_content["prerequisites"]
+
+    # _libraryFileList = _systemrole_content["libraryFileList"]
+    _libraryFileList = []
+    for a in _systemrole_content["libraryFileList"]:
+        _libraryFileList.append(_systemrole_content["srcdire"] + "/" + a)
+    _src_root_path = _systemrole_content["srcdire"] + "/src"
     _ignorelist = _systemrole_content["ignorelist"]
 
     _content = f"""

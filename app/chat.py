@@ -1,10 +1,13 @@
 import streamlit as st
 import pandas as pd
 from app.myjsondb.myStreamlit import getValueByFormnameAndKeyName
-from app.myjsondb.myHistory import getValByKey, upsertValByKey, getAllHistory, deleteByKey
+# from app.myjsondb.myHistory import getValByKey, upsertValByKey, getAllHistory, deleteByKey
+from app.myjsondb.myHistories import createProject, getProjectList, dropProject, upsertValToPjByKey, getAllHistoryOfPj, getValOfPjByKey, deletePjByKey
+from app.myjsondb.myProjectSettings import upsertSrcdireAndValueByPjnm, getSrcdireByPjnm, deletePjSettingsByKey, getAllProject
 from app.prompt import createPromt
 from app.util.execLlmApi import execLlmApi
 import base64
+import os
 
 
 # sesson state key
@@ -13,11 +16,12 @@ SS_MESSAGES = "messages"
 
 
 # チャットボットとやりとりする関数
-def communicate(_selected_model, selected_programing_model, encoded_file):
+def communicate(selected_project, _selected_model, selected_programing_model, encoded_file):
     st.session_state[SS_MESSAGES] = []
     messages = st.session_state[SS_MESSAGES]
 
     _systemrole_content = getValueByFormnameAndKeyName("chat", "systemrole", selected_programing_model)
+    _systemrole_content["srcdire"] = getSrcdireByPjnm(selected_project)
     messages.append({"role": "system", "content": _systemrole_content["system_role"]})
 
     _content = createPromt(
@@ -39,10 +43,12 @@ def communicate(_selected_model, selected_programing_model, encoded_file):
     return messages
 
 
-def story2code(_selected_model, selected_programing_model, encoded_file):
-    request_messages = communicate(_selected_model, selected_programing_model ,encoded_file)
+def story2code(selected_project, _selected_model, selected_programing_model, encoded_file):
+    request_messages = communicate(selected_project, _selected_model, selected_programing_model, encoded_file)
 
-    upsertValByKey(_selected_model, st.session_state["user_input"], request_messages)
+    print(f"selected_project = {selected_project}")
+    upsertValToPjByKey(_selected_model, st.session_state["user_input"], request_messages, selected_project)
+    # upsertValByKey(_selected_model, st.session_state["user_input"], request_messages)
     st.session_state["user_input"] = ""  # 入力欄を消去
     return
 
@@ -79,12 +85,21 @@ def getProgramingLanguage():
     return tuple(getValueByFormnameAndKeyName("chat", "systemrole", "プログラミング言語"))
 
 
+def getProjectListTuple():
+    return tuple(getAllProject())
+
+
 def mainui():
     col1, col2 = st.columns(2)
 
     init_session()
 
     with col1:
+        selected_project = st.selectbox(
+            "Choose Project",
+            getProjectListTuple(),
+            key="selected_project")
+
         selected_model = st.selectbox(
             "Choose Gpt Model",
             getModelList(),
@@ -115,6 +130,7 @@ def mainui():
             "実行",
             on_click=story2code,
             args=(
+                selected_project,
                 selected_model,
                 selected_programing_model,
                 encoded_file,)
@@ -125,17 +141,23 @@ def mainui():
         buildChatMessageFromSession(messages)
 
 
-def delete_history(subset_df, selected_index):
+def delete_history(subset_df, selected_index, selected_project):
     _gptmodel = subset_df["gptmodel"][selected_index]
     _input = subset_df["input"][selected_index]
     _registration_date = subset_df["registration_date"][selected_index]
-    deleteByKey(_gptmodel, _input, _registration_date)
+    # deleteByKey(_gptmodel, _input, _registration_date)
+    deletePjByKey(_gptmodel, _input, _registration_date, selected_project)
 
 
 def historyArea():
     col1, col2 = st.columns(2)
     with col1:
-        df = pd.DataFrame(getAllHistory())
+        selected_project = st.selectbox(
+            "Choose Project",
+            getProjectListTuple(),
+            key="selected_project_of_historyArea")
+        # df = pd.DataFrame(getAllHistory())
+        df = pd.DataFrame(getAllHistoryOfPj(selected_project))
         if len(df) > 0:
             selected_index = st.number_input('Enter row index to plot:', min_value=0, max_value=len(df)-1, value=0, step=1)
 
@@ -145,7 +167,8 @@ def historyArea():
         # 選択された行のデータを取得
         if len(df) > 0:
             if 0 <= selected_index < len(df):
-                messages = getValByKey(df["gptmodel"][selected_index], df["input"][selected_index])
+                # messages = getValByKey(df["gptmodel"][selected_index], df["input"][selected_index])
+                messages = getValOfPjByKey(df["gptmodel"][selected_index], df["input"][selected_index], selected_project)
 
                 # 初期ステートの設定
                 if 'show_choices' not in st.session_state:
@@ -164,7 +187,7 @@ def historyArea():
                     if st.button('Confirm'):
                         st.session_state.confirmed = True
                         if choice == 'Yes':
-                            delete_history(df, selected_index)
+                            delete_history(df, selected_index, selected_project)
                             st.session_state.message = "deleted."
                         else:
                             st.session_state.message = "You chose not to continue."
@@ -181,13 +204,54 @@ def historyArea():
                 buildChatMessageFromSession(messages)
 
 
+def project():
+    # プロジェクトの新規作成と一覧の確認と削除を行う方法
+    # 新規プロジェクトの作成
+    st.header("新規プロジェクトの作成")
+    new_project_name = st.text_input("プロジェクト名")
+    dir_path = st.text_input("ディレクトリのパスを入力してください:")
+
+    if st.button("プロジェクトを追加"):
+        # 入力されたディレクトリパスが有効かどうかを確認
+        if dir_path:
+            if os.path.isdir(dir_path):
+                if new_project_name:
+                    createProject(new_project_name)
+                    upsertSrcdireAndValueByPjnm(new_project_name, dir_path, {"test": "sss"})
+                    st.success(f"プロジェクト '{new_project_name}' を追加しました。")
+                    st.success(f"指定されたディレクトリ: {getSrcdireByPjnm(new_project_name)}")
+                else:
+                    st.error("プロジェクト名を入力してください。")
+            else:
+                st.error("有効なディレクトリパスを入力してください。")
+        else:
+            st.error("ディレクトリパスを入力してください。")
+
+    # プロジェクト一覧の表示と削除
+    st.header("プロジェクト一覧")
+    projects = getProjectList()
+    print(projects)
+    if projects:
+        for project_name in projects:
+            st.write(f"- {project_name}")
+            if st.button(f"削除 '{project_name}'", key=project_name):
+                dropProject(project_name)
+                deletePjSettingsByKey(project_name)
+                st.success(f"プロジェクト '{project_name}' を削除しました。")
+    else:
+        st.write("現在、プロジェクトはありません。")
+
+
 def chat():
     st.set_page_config(layout="wide")
     st.title("StoryCodeWizard")
-    tab1, tab2 = st.tabs(["stroy2code", "history"])
+    tab1, tab2, tab3 = st.tabs(["stroy2code", "history", "project"])
 
     with tab1:
         mainui()
 
     with tab2:
         historyArea()
+
+    with tab3:
+        project()

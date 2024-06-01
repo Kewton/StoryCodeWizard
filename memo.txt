@@ -5,3 +5,17 @@ Message(
         ], 
     model='claude-3-opus-20240229',
     role='assistant', stop_reason='end_turn', stop_sequence=None, type='message', usage=Usage(input_tokens=3531, output_tokens=959))
+
+
+
+Next.jsで新規で下記ユーザーストーリを実現するwebアプリを開発したいです。ソースコードを出力するとともに、ゼロからのセットアップ手順をREADME.mdに出力してください。
+なお、create-next-app@latest実行時、下記の通り全てデフォルト値とします。
+✔ Would you like to use TypeScript?　-> Yes
+✔ Would you like to use ESLint? -> Yes
+✔ Would you like to use Tailwind CSS? -> Yes
+✔ Would you like to use `src/` directory? -> Yes
+✔ Would you like to use App Router? (recommended) -> Yes
+✔ Would you like to customize the default import alias (@/*)? -> No
+
+ユーザーストーリー１：
+Teamsに近いチャットインターフェースで人/AI問わず不特定多数のユーザーとコミュニケーションをとりたい

@@ -16,16 +16,20 @@ def fetch_libraryfiles_and_contents(_file_list):
             print(file_path)
             _, file_extension = os.path.splitext(file_path)
             file_extension = file_extension.lstrip('.')
-            with open(file_path, 'r', encoding='utf-8') as file:
-                content = file.read()
-                all_files.append(f" - filename:{file_path}")
-                all_files.append(f"```{file_extension}")
-                all_files.append(content)
-                all_files.append("```")
-                all_files.append("")
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                    all_files.append(f" - filename:{file_path}")
+                    all_files.append(f"```{file_extension}")
+                    all_files.append(content)
+                    all_files.append("```")
+                    all_files.append("")
         except (UnicodeDecodeError, IOError):
-            print("Error reading ./front/package.json. It may not be a text file or might have encoding issues.")
-    outstr = '\n'.join(str(elem) for elem in all_files)
+            print(f"Error reading {file_path}. It may not be a text file or might have encoding issues.")
+    if len(all_files) > 0:
+        outstr = '\n'.join(str(elem) for elem in all_files)
+    else:
+        outstr = "既存のソースコードは特にありません。新規です。"
     return outstr
 
 
@@ -53,5 +57,8 @@ def fetch_files_and_contents(directory, ignorelist):
                         all_files.append("")
                 except (UnicodeDecodeError, IOError):
                     print(f"Error reading {file_path}. It may not be a text file or might have encoding issues.")
-    outstr = '\n'.join(str(elem) for elem in all_files)
+    if len(all_files) > 0:
+        outstr = '\n'.join(str(elem) for elem in all_files)
+    else:
+        outstr = "既存のソースコードは特にありません。新規です。"
     return outstr
