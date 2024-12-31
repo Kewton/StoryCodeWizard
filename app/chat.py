@@ -60,6 +60,15 @@ def init_session():
         st.session_state[SS_MESSAGES] = []
 
 
+def get_download_str(messages):
+    """Create a formatted string from messages"""
+    formatted_text = []
+    for message in messages[1:]:  # Skip system message
+        speaker = "You🙂" if message["role"] == "user" else "Agent🤖"
+        formatted_text.append(f"{speaker}:\n{message['content']}\n")
+    return "\n".join(formatted_text)
+
+
 def buildChatMessageFromSession(messages):
 
     for message in messages[1:]:  # 直近のメッセージを上に
@@ -71,9 +80,6 @@ def buildChatMessageFromSession(messages):
         else:
             with st.expander(speaker + ": content"):
                 st.markdown(message["content"], unsafe_allow_html=True)
-
-            with open("./output.txt", "w") as file:
-                file.write(message["content"])
 
 
 def getModelList():
@@ -110,7 +116,7 @@ def mainui():
             key="selected_programing_language")
 
         st.text_area(
-            "ユーザーストーリを入力してください。",
+            "要求を入力してください。",
             key="user_input",
             value=st.session_state[SS_USER_INPUT])
 
@@ -173,10 +179,23 @@ def historyArea():
                 if 'confirmed' not in st.session_state:
                     st.session_state.confirmed = False
 
-                # アクションボタン
-                if st.button('Delete History Recrod'):
-                    st.session_state.show_choices = True
-                    st.session_state.confirmed = False  # ユーザーが再度アクションを開始したら、確認状態をリセット
+                # ボタンを横に並べるためにcolumnsを使用
+                button_col1, button_col2 = st.columns(2)
+
+                # Delete History Recordボタン
+                with button_col1:
+                    if st.button('Delete History Record'):
+                        st.session_state.show_choices = True
+                        st.session_state.confirmed = False
+
+                with button_col2:
+                    download_str = get_download_str(messages)
+                    st.download_button(
+                        label="Download Chat",
+                        data=download_str,
+                        file_name=f"chat_history_{df['gptmodel'][selected_index]}_{df['registration_date'][selected_index]}.md",
+                        mime="text/plain"
+                    )
 
                 # Yes/No の選択と確認ボタンの表示
                 if st.session_state.show_choices and not st.session_state.confirmed:
