@@ -24,3 +24,8 @@ pip install -r requirements.txt
         - jsx
     - ユースケース
 
+# run
+```
+python initdatabase.py
+streamlit run run.py
+```
