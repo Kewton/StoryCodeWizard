@@ -12,9 +12,32 @@ claude_client = anthropic.Anthropic(
 )
 
 
-def execLlmApi(_selected_model, _messages, encoded_file):
+def isChatGptAPI(_selected_model):
     if "gpt" in _selected_model:
-        if "gpt-4o" == _selected_model and len(encoded_file) > 0:
+        return True
+    else:
+        return False
+
+
+def isChatGPT_o1(_selected_model):
+    if "o1" in _selected_model:
+        return True
+    else:
+        return False
+    
+
+def isChatGPTImageAPI(_selected_model):
+    if "gpt-4o" in _selected_model:
+        return True
+    elif "o1" in _selected_model:
+        return True
+    else:
+        return False
+
+
+def execLlmApi(_selected_model, _messages, encoded_file):
+    if isChatGptAPI(_selected_model):
+        if isChatGPTImageAPI(_selected_model) and len(encoded_file) > 0:
             _inpurt_messages = []
             _inpurt_messages.append(_messages[0])
             _inpurt_messages.append(
@@ -33,10 +56,48 @@ def execLlmApi(_selected_model, _messages, encoded_file):
                 model=_selected_model,
                 messages=_messages
             )
-        print("_messages = ")
-        print(_messages)
+        # print("_messages = ")
+        # print(_messages)
         return response.choices[0].message.content, response.choices[0].message.role
 
+    elif isChatGPT_o1(_selected_model):
+        _inpurt_messages = []
+        for _rec in _messages:
+            if _rec["role"] == "system":
+                _systemrole = _rec["content"]
+            elif _rec["role"] == "user":
+                if len(encoded_file) > 0:
+                    print("append image")
+                    _content = []
+                    _content.append({
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": encoded_file
+                        }
+                    })
+                    _content.append({
+                        "type": "text",
+                        "text": _rec["content"]
+                    })
+                    
+                    _inpurt_messages.append(
+                        {
+                            "role": _rec["role"],
+                            "content": _content
+                        }
+                    )
+                else:
+                    _inpurt_messages.append(_rec)
+
+        response = chatgptapi_client.chat.completions.create(
+            model=_selected_model,
+            messages=_inpurt_messages
+        )
+
+        return response.choices[0].message.content, response.choices[0].message.role
+    
     elif "claude" in _selected_model:
         _inpurt_messages = []
 
