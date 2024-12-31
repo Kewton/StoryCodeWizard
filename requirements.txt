@@ -2,3 +2,4 @@ git+https://github.com/Kewton/jsonDB
 streamlit
 openai
 anthropic
+PathSpec
