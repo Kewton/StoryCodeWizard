@@ -111,26 +111,36 @@ def nextjstemplate2(_prerequisites, _input, _libraryFileList, _src_root_path, _i
 def fastAPItemplate(_prerequisites, _input, _libraryFileList, _src_root_path, _ignorelist):
     _content = f"""
 # 命令指示書
-- 現在のソースコードと要求に対し前提条件と制約条件を満たす最高の成果物を生成してください。
-- 必要に応じて改善案を提案して下さい。
+- 現在のソースコードと要求に対し、下記手順に従って前提条件と制約条件と技術制約を満たす最高の成果物を生成してください。
+    1. 要求を解釈し推敲を行う。また、必要に応じて情報を補完する。
+    2. ソースコードが存在する場合、現状を把握する。
+    3. 出力結果への評価方法及び前提条件と制約条件と技術制約を満たした合格条件を定義する。
+    4. 合格条件に合うコードもしくはテキストを出力する
+    5. 3の評価方法に従って評価する
+    6. 評価結果が合格の場合終了する。不合格の場合は7に進む。
+    7. 不合格の原因を調査し解決策を検討する
+    8. 2からやり直す
 
-### 前提条件
-{_prerequisites}
+# 前提条件
+- {_prerequisites}
+- 開発環境は「macbook air m3」です
 
-### 制約条件
-- アウトプットはmarkdown形式とすること
-- 要求文書を適切な表現に変換すること
-- 新規にインストールが必要な場合、ライブラリのインストール方法を明確にすること
-- 新規にファイル作成が必要な場合、名称と拡張子も明確にしソースコードをフルで出力すること
-- 修正時は、類似の修正であっても対象箇所をフルで出力すること
-- 修正時は、修正後のコードだけでなくdiff形式で変更箇所が明らかになるように修正すること
-- ./docs/requiredSpecifications.md（要求仕様書）の変更が発生する場合は修正すること
-- Googleスタイル形式でのPython Docstringも出力すること
+# 制約条件
+- 出力結果はmarkdown形式とすること
+- ソースコードはGoogleスタイル形式でのPython Docstringも出力すること
+- pytestによるテストコードとテストの実行方法を出力すること
 - README.mdへの記述内容も出力すること
-- pytestによるテストコードを出力すること
+- ソースコードとテキスト共に途中を省略せずに全てを出力すること
+- 新規にライブラリのインストールが必要な場合、ライブラリのインストール方法を明確にすること
+- 新規にファイル作成が必要な場合、ファイル名と拡張子を明確にしソースコードをフルで出力すること
+- 修正が必要な場合は、類似の修正であっても全ての対象箇所を出力すること
+- 修正時は、修正後の全てのコードに加えdiff形式で変更箇所が明らかになるように出力すること
+- ./docs/requiredSpecifications.md（要求仕様書）の変更が発生する場合は修正内容を出力すること
 - git への commit コメントを出力すること
+- 出力結果の妥当性の評価方法及び評価結果を出力すること
+- 出力結果に問題が残る場合は再度検討しブラッシュアップすること
 
-### 技術制約
+# 技術制約
 - databaseはSQLiteを使用すること
 - ディレクトリ構成は下記例に準拠こと
     ```
@@ -162,16 +172,15 @@ def fastAPItemplate(_prerequisites, _input, _libraryFileList, _src_root_path, _i
     │   │   ├── base.py         # モデルのベース設定
     │   │   ├── session.py      # DBセッションの設定
     │   │   └── __init__.py
-    │   ├── tests/              # テストディレクトリ
-    │   │   ├── test_user.py    # 例: ユーザー関連のテスト
-    │   │   └── test_item.py    # 例: アイテム関連のテスト
     │   ├── utils/              # ヘルパー関数やユーティリティ関数
     │   │   ├── helpers.py
     │   │   └── __init__.py
     │   ├── main.py             # アプリケーションのエントリーポイント
     │   └── __init__.py
     ├── .env                    # 環境変数ファイル
-    ├── test                    # pytestによるテストコード
+    ├── tests                   # pytestによるテストコード
+    │   ├── test_user.py        # 例: ユーザー関連のテスト
+    │   └── test_item.py        # 例: アイテム関連のテスト
     ├── docs                    # mkdocsによるドキュメント
     │   ├── index.md            # mkddocsのhome画面
     │   ├── reference.md        # appディレクトリのコードから自動生成下ドキュメント
@@ -180,15 +189,16 @@ def fastAPItemplate(_prerequisites, _input, _libraryFileList, _src_root_path, _i
     └── Dockerfile              # Dockerの設定ファイル（必要に応じて）
     ```
 
-### 要求
-===
-{_input}
-===
+---
+# 要求
+    {_input}
 
-### 現在のrequirements.txt
+---
+# 現在のrequirements.txt
 {fetch_libraryfiles_and_contents(_libraryFileList)}
 
-### 現在のソースコード
+---
+# 現在のソースコード
 {fetch_files_and_contents(_src_root_path, _ignorelist)}
 
     """
