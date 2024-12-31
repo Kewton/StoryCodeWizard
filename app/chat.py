@@ -60,13 +60,20 @@ def init_session():
         st.session_state[SS_MESSAGES] = []
 
 
-def get_download_str(messages):
+def get_download_user_str(messages):
     """Create a formatted string from messages"""
-    formatted_text = []
-    for message in messages[1:]:  # Skip system message
-        speaker = "You🙂" if message["role"] == "user" else "Agent🤖"
-        formatted_text.append(f"{speaker}:\n{message['content']}\n")
-    return "\n".join(formatted_text)
+    for message in messages[1:]:
+        if message["role"] == "user":
+            return message['content']
+    return ""
+
+
+def get_download_assistant_str(messages):
+    """Create a formatted string from messages"""
+    for message in messages[1:]:
+        if message["role"] == "assistant":
+            return message['content']
+    return ""
 
 
 def buildChatMessageFromSession(messages):
@@ -162,6 +169,16 @@ def historyArea():
             key="selected_project_of_historyArea")
         # df = pd.DataFrame(getAllHistory())
         df = pd.DataFrame(getAllHistoryOfPj(selected_project))
+        df = df.sort_index(ascending=False)
+        df = df.reset_index(drop=True)
+        df['registration_date'] = (
+            df['registration_date']
+            .str[:14]  # 先頭14文字 (YYYYMMDDHHMMSS) を取得
+            .apply(lambda x: f"{x[:4]}-{x[4:6]}-{x[6:8]}_{x[8:10]}:{x[10:12]}:{x[12:14]}")  # フォーマット
+        )
+        columns_order = ['registration_date', 'gptmodel', 'input']
+        df = df[columns_order]
+        print(df.head())
         if len(df) > 0:
             selected_index = st.number_input('Enter row index to plot:', min_value=0, max_value=len(df)-1, value=0, step=1)
 
@@ -180,7 +197,7 @@ def historyArea():
                     st.session_state.confirmed = False
 
                 # ボタンを横に並べるためにcolumnsを使用
-                button_col1, button_col2 = st.columns(2)
+                button_col1, button_col2, button_col3 = st.columns(3)
 
                 # Delete History Recordボタン
                 with button_col1:
@@ -189,11 +206,20 @@ def historyArea():
                         st.session_state.confirmed = False
 
                 with button_col2:
-                    download_str = get_download_str(messages)
+                    download_str_user = get_download_user_str(messages)
                     st.download_button(
-                        label="Download Chat",
-                        data=download_str,
-                        file_name=f"chat_history_{df['gptmodel'][selected_index]}_{df['registration_date'][selected_index]}.md",
+                        label="Download Your Context",
+                        data=download_str_user,
+                        file_name=f"chat_history_{df['gptmodel'][selected_index]}_{df['registration_date'][selected_index]}_user.md",
+                        mime="text/plain"
+                    )
+
+                with button_col3:
+                    download_str_assistant = get_download_assistant_str(messages)
+                    st.download_button(
+                        label="Download Agent Context",
+                        data=download_str_assistant,
+                        file_name=f"chat_history_{df['gptmodel'][selected_index]}_{df['registration_date'][selected_index]}_agent.md",
                         mime="text/plain"
                     )
 
