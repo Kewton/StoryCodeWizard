@@ -24,7 +24,7 @@ def initdata():
         "chat",
         "systemrole",
         {
-            "プログラミング言語": ["FastAPI", "Next.js_1", "Next.js_2"],
+            "プログラミング言語": ["FastAPI", "Streamlit", "Next.js_1", "Next.js_2"],
             "Next.js_1": {
                 "srcdire": "src",
                 "libraryFileList": [
@@ -50,7 +50,6 @@ def initdata():
                 "prompt": "nextjstemplate2"
             },
             "FastAPI": {
-                "srcdire": "../test",
                 "libraryFileList": [
                     "requirements.txt"
                 ],
@@ -59,11 +58,31 @@ def initdata():
                 "ignorelist": [
                     "__pycache__/",
                     "venv/",
+                    ".venv/",
                     "*.db",
                     "*.DS_Store",
-                    "*.log"
+                    "*.log",
+                    ".git/",
+                    "mydb/"
                 ],
                 "prompt": "fastAPItemplate"
+            },
+            "Streamlit": {
+                "srcdire": "",
+                "libraryFileList": [],
+                "prerequisites": "Streamlit を利用したアプリケーションのコードを生成します。利便性と可読性を確保します。",
+                "system_role": "あなたは優秀なStreamlit開発者です。入力情報を元に、簡潔でメンテナブルなコードを提供してください。",
+                "ignorelist": [
+                    "__pycache__/",
+                    "venv/",
+                    ".venv/",
+                    "*.db",
+                    "*.DS_Store",
+                    "*.log",
+                    ".git/",
+                    "mydb/"
+                ],
+                "prompt": "streamlitTemplate"  # 新しいテンプレート名
             }
         }
     )
