@@ -11,6 +11,9 @@ def initdata():
                 "gpt-4o-mini",
                 "o1-mini",
                 "o1-preview",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro",
+                "gemini-2.0-flash-exp",
                 "claude-3-sonnet-20240229",
                 "claude-3-haiku-20240307"
             ]
@@ -58,7 +61,7 @@ def initdata():
                     "venv/",
                     "*.db",
                     "*.DS_Store",
-                    ".log"
+                    "*.log"
                 ],
                 "prompt": "fastAPItemplate"
             }

@@ -2,11 +2,12 @@ create secret_keys.py
 ```python
 openai_api_key = <your api key>
 claude_api_key = <your api key>
+gemini_api_key = <your api key>
 ```
 
 # initialize
 ```
-python3 datamanipulate.py
+python3 initdatabase.py
 ```
 
 # setup(macbook)

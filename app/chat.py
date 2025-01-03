@@ -178,7 +178,6 @@ def historyArea():
         )
         columns_order = ['registration_date', 'gptmodel', 'input']
         df = df[columns_order]
-        print(df.head())
         if len(df) > 0:
             selected_index = st.number_input('Enter row index to plot:', min_value=0, max_value=len(df)-1, value=0, step=1)
 
