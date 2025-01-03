@@ -16,6 +16,18 @@ SS_MESSAGES = "messages"
 
 # チャットボットとやりとりする関数
 def communicate(selected_project, _selected_model, selected_programing_model, encoded_file):
+    """
+    チャットボットとやりとりする関数。
+
+    Args:
+        selected_project (str): 現在選択しているプロジェクト名。
+        _selected_model (str): 使用するGPTモデル名。
+        selected_programing_model (str): 使用するプログラミング言語名。
+        encoded_file (str): Base64でエンコードされた画像ファイルデータ。
+
+    Returns:
+        list: 会話のメッセージのリスト。
+    """
     st.session_state[SS_MESSAGES] = []
     messages = st.session_state[SS_MESSAGES]
 
@@ -43,6 +55,18 @@ def communicate(selected_project, _selected_model, selected_programing_model, en
 
 
 def story2code(selected_project, _selected_model, selected_programing_model, encoded_file):
+    """
+    ストーリーベースのコード生成プロセスを開始する。
+
+    Args:
+        selected_project (str): 選択されたプロジェクト名。
+        _selected_model (str): 使用するLLMモデル名。
+        selected_programing_model (str): 使用するプログラミング言語。
+        encoded_file (str): Base64エンコードされたファイルデータ。
+
+    Returns:
+        None
+    """
     request_messages = communicate(selected_project, _selected_model, selected_programing_model, encoded_file)
 
     print(f"selected_project = {selected_project}")

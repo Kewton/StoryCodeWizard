@@ -6,3 +6,4 @@ PathSpec
 google-genai
 google-generativeai
 beautifulsoup4
+pytest

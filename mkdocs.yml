@@ -1,0 +1,62 @@
+# Improved mkdocs.yml
+site_name: My Project Documentation
+site_description: A comprehensive guide to My Project APIs and usage.
+site_author: Your Name
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: pink
+    - scheme: slate
+      primary: deep purple
+      accent: light blue
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand    # 自動でセクションを展開
+    - navigation.top      # 常にトップページへのリンクを表示
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            filters:
+              - "!^__"   # プライベートメンバを除外
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Usage Guide: usage.md
+  - Project Requirements:
+      - Specs: requiredSpecifications.md
+  - Reference: 
+      - Chat API: reference/app_chat.md
+      - code: reference.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/<your-repo>
+      text: "Visit the project on GitHub"
+    - icon: fontawesome/brands/slack
+      link: https://slack.com/<your-workspace>
+      text: "Join the community on Slack"
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - footnotes
+  - def_list
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tasklist:
+      clickable_checkbox: true
+  - pymdownx.critic   # インライン削除・追加のバリエーション
