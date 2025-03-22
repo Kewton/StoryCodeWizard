@@ -1,3 +1,15 @@
+"""
+Module for Streamlit-based chat interface.
+
+This module handles user interfaces, managing chat sessions, chat history,
+and LLM interactions for generating responses based on inputs.
+
+Functions:
+    communicate: Handles interaction with the selected LLM.
+    story2code: Converts user stories into code using LLMs.
+    init_session: Initializes Streamlit session state variables.
+    ... (other function descriptions)
+"""
 import streamlit as st
 import pandas as pd
 from app.myjsondb.myStreamlit import getValueByFormnameAndKeyName
@@ -15,14 +27,14 @@ SS_MESSAGES = "messages"
 
 
 # チャットボットとやりとりする関数
-def communicate(selected_project, _selected_model, selected_programing_model, encoded_file):
+def communicate(selected_project, _selected_model, selected_framework, encoded_file):
     """
     チャットボットとやりとりする関数。
 
     Args:
         selected_project (str): 現在選択しているプロジェクト名。
         _selected_model (str): 使用するGPTモデル名。
-        selected_programing_model (str): 使用するプログラミング言語名。
+        selected_framework (str): 使用するフレームワーク。
         encoded_file (str): Base64でエンコードされた画像ファイルデータ。
 
     Returns:
@@ -31,7 +43,7 @@ def communicate(selected_project, _selected_model, selected_programing_model, en
     st.session_state[SS_MESSAGES] = []
     messages = st.session_state[SS_MESSAGES]
 
-    _systemrole_content = getValueByFormnameAndKeyName("chat", "systemrole", selected_programing_model)
+    _systemrole_content = getValueByFormnameAndKeyName("chat", "systemrole", selected_framework)
     _systemrole_content["pjdir"] = getPjdirByPjnm(selected_project)
     messages.append({"role": "system", "content": _systemrole_content["system_role"]})
 
@@ -54,20 +66,20 @@ def communicate(selected_project, _selected_model, selected_programing_model, en
     return messages
 
 
-def story2code(selected_project, _selected_model, selected_programing_model, encoded_file):
+def story2code(selected_project, _selected_model, selected_framework, encoded_file):
     """
     ストーリーベースのコード生成プロセスを開始する。
 
     Args:
         selected_project (str): 選択されたプロジェクト名。
         _selected_model (str): 使用するLLMモデル名。
-        selected_programing_model (str): 使用するプログラミング言語。
+        selected_framework (str): 使用するフレームワーク。
         encoded_file (str): Base64エンコードされたファイルデータ。
 
     Returns:
         None
     """
-    request_messages = communicate(selected_project, _selected_model, selected_programing_model, encoded_file)
+    request_messages = communicate(selected_project, _selected_model, selected_framework, encoded_file)
 
     print(f"selected_project = {selected_project}")
     upsertValToPjByKey(_selected_model, st.session_state["user_input"], request_messages, selected_project)
@@ -118,7 +130,7 @@ def getModelList():
 
 
 def getProgramingLanguage():
-    return tuple(getValueByFormnameAndKeyName("chat", "systemrole", "プログラミング言語"))
+    return tuple(getValueByFormnameAndKeyName("chat", "systemrole", "フレームワーク"))
 
 
 def getProjectListTuple():
@@ -142,9 +154,9 @@ def mainui():
             key="selected_model")
 
         selected_programing_model = st.selectbox(
-            "Choose Programing Language",
+            "Choose Framework",
             getProgramingLanguage(),
-            key="selected_programing_language")
+            key="selected_framework")
 
         st.text_area(
             "要求を入力してください。",

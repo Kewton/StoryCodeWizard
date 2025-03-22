@@ -11,9 +11,11 @@ def initdata():
                 "gpt-4o-mini",
                 "o1-mini",
                 "o1-preview",
+                "o3-mini-high",
                 "gemini-1.5-flash",
                 "gemini-1.5-pro",
                 "gemini-2.0-flash-exp",
+                "gemini-2.0-pro-exp-02-05",
                 "claude-3-sonnet-20240229",
                 "claude-3-haiku-20240307"
             ]
@@ -24,9 +26,8 @@ def initdata():
         "chat",
         "systemrole",
         {
-            "プログラミング言語": ["FastAPI", "Streamlit", "Next.js_1", "Next.js_2"],
+            "フレームワーク": ["FastAPI", "Streamlit", "Next.js_1", "Next.js_2"],
             "Next.js_1": {
-                "srcdire": "src",
                 "libraryFileList": [
                     "package.json"
                 ],
@@ -38,7 +39,6 @@ def initdata():
                 "prompt": "nextjstemplate1"
             },
             "Next.js_2": {
-                "srcdire": "src",
                 "libraryFileList": [
                     "package.json"
                 ],
@@ -68,9 +68,10 @@ def initdata():
                 "prompt": "fastAPItemplate"
             },
             "Streamlit": {
-                "srcdire": "",
-                "libraryFileList": [],
-                "prerequisites": "Streamlit を利用したアプリケーションのコードを生成します。利便性と可読性を確保します。",
+                "libraryFileList": [
+                    "requirements.txt"
+                ],
+                "prerequisites": "./docs/requiredSpecifications.md に記載された要求仕様書に従ったStreamlitのパーソナルアプリを開発しています。",
                 "system_role": "あなたは優秀なStreamlit開発者です。入力情報を元に、簡潔でメンテナブルなコードを提供してください。",
                 "ignorelist": [
                     "__pycache__/",

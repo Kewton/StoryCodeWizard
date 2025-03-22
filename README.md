@@ -58,15 +58,10 @@ streamlit run run.py
 ```
 StoryCodeWizard/
 ├── app/
-│   ├── api/                # 未使用(現在のバージョンではエンドポイント用)
-│   ├── chat.py             # StreamlitフロントエンドとLLM連携ロジック
-│   ├── core/               # 設定や認証ロジック予定のディレクトリ（未使用）
-│   ├── models/             # データモデル予定のディレクトリ（未使用）
-│   ├── schemas/            # リクエスト/レスポンス定義予定のディレクトリ
-│   ├── services/           # ビジネスロジックを将来的に配置可能
-│   ├── db/                 # データベースハンドリング（未使用）
+│   ├── myjsondb/           # データベース定義
+│   ├── prompt/             # LLM実行時のプロンプト定義
 │   ├── utils/              # ツールセット群
-│   ├── main.py             # エントリーポイント
+│   ├── chat.py             # StreamlitフロントエンドとLLM連携ロジック
 │   └── __init__.py
 ├── docs/                   # ドキュメント等
 ├── tests/                  # テストコード
