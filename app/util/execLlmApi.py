@@ -26,8 +26,10 @@ def isChatGptAPI(_selected_model):
         return False
 
 
-def isChatGPT_o1(_selected_model):
+def isChatGPT_o(_selected_model):
     if "o1" in _selected_model:
+        return True
+    elif "o3" in _selected_model:
         return True
     else:
         return False
@@ -37,6 +39,8 @@ def isChatGPTImageAPI(_selected_model):
     if "gpt-4o" in _selected_model:
         return True
     elif "o1" in _selected_model:
+        return True
+    elif "o3" in _selected_model:
         return True
     else:
         return False
@@ -114,7 +118,7 @@ def execLlmApi(_selected_model, _messages, encoded_file):
             )
         return response.choices[0].message.content, response.choices[0].message.role
 
-    elif isChatGPT_o1(_selected_model):
+    elif isChatGPT_o(_selected_model):
         _inpurt_messages, _systemrole = buildInpurtMessages(_messages, encoded_file)
 
         response = chatgptapi_client.chat.completions.create(
