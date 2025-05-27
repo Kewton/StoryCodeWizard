@@ -167,20 +167,27 @@ def historyArea():
             "Choose Project",
             getProjectListTuple(),
             key="selected_project_of_historyArea")
-        # df = pd.DataFrame(getAllHistory())
-        df = pd.DataFrame(getAllHistoryOfPj(selected_project))
+        data = getAllHistoryOfPj(selected_project)
+        if not data or not isinstance(data, list) or len(data) == 0:
+            st.write("履歴がありません。")
+            return
+        df = pd.DataFrame(data)
+        # 必要なカラムがなければエラー回避
+        required_cols = {'registration_date', 'gptmodel', 'input'}
+        if not required_cols.issubset(df.columns):
+            st.write("履歴データに必要なカラムがありません。")
+            return
         df = df.sort_index(ascending=False)
         df = df.reset_index(drop=True)
         df['registration_date'] = (
             df['registration_date']
-            .str[:14]  # 先頭14文字 (YYYYMMDDHHMMSS) を取得
-            .apply(lambda x: f"{x[:4]}-{x[4:6]}-{x[6:8]}_{x[8:10]}:{x[10:12]}:{x[12:14]}")  # フォーマット
+            .str[:14]
+            .apply(lambda x: f"{x[:4]}-{x[4:6]}-{x[6:8]}_{x[8:10]}:{x[10:12]}:{x[12:14]}")
         )
         columns_order = ['registration_date', 'gptmodel', 'input']
         df = df[columns_order]
         if len(df) > 0:
             selected_index = st.number_input('Enter row index to plot:', min_value=0, max_value=len(df)-1, value=0, step=1)
-
             st.dataframe(df)
 
     with col2:

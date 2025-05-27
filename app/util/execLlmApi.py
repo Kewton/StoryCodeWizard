@@ -137,13 +137,32 @@ def execLlmApi(_selected_model, _messages, encoded_file):
     elif isClaude(_selected_model):
         _inpurt_messages, _systemrole = buildInpurtMessages(_messages, encoded_file)
 
+        _max_tokens = 4096
+
+        if "claude-sonnet-4" in _selected_model or "claude-3-7-sonnet" in _selected_model:
+            _max_tokens = 64000
+        elif "claude-opus-4" in _selected_model:
+            _max_tokens = 32000
+
         response = claude_client.messages.create(
-            max_tokens=4096,
+            max_tokens=_max_tokens,
             system=_systemrole,
             model=_selected_model,
-            messages=_inpurt_messages
+            messages=_inpurt_messages,
+            stream=True  # Anthropic Claude API で10分以上かかるリクエストはストリーミングモードで実行することが推奨されている
         )
 
-        return response.content[0].text, response.role
+        # ストリーミングレスポンスを結合
+        content = ""
+        role = "assistant"
+        for event in response:
+            # Claudeのストリーミングはdelta.textにテキストが入る
+            if hasattr(event, "delta") and hasattr(event.delta, "text"):
+                content += event.delta.text
+                print(event.delta.text, end="", flush=True)
+            if hasattr(event, "role"):
+                role = event.role
+
+        return content, role
     else:
         return {}, ""

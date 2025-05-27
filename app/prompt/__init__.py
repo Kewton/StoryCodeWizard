@@ -50,24 +50,116 @@ def nextjstemplate1(_prerequisites, _input, _libraryFileList, _src_root_path, _i
 # 命令指示書
 - 現在のソースコードと要求に対し前提条件と制約条件を満たす最高の成果物を生成してください。
 
-### 前提条件
+# 前提条件
 {_prerequisites}
+- node.jsのバージョンはv23.11.0を使用しています。
+- npmのバージョンは10.9.2を使用しています。
+- Next.jsのプロジェクト登録は下記コマンドを実行しているものとします。
+    ```bash
+    npx create-next-app@latest myux \
+        --app \
+        --ts \
+        --tailwind \
+        --eslint \
+        --src-dir
+    ```
 
-### 制約条件
+# 制約条件
 - アウトプットはmarkdown形式とすること
-- 要求文書を適切な表現に変換すること
+- 出力フォーマットに従うこと
+- セットアップ手順はREADME.mdに記載すること
+- 下記コマンドにより実行可能であること
+    ```bash
+    # 依存関係のインストール
+    npm install
+
+    # 開発サーバーの起動
+    npm run dev
+
+    # ビルド
+    npm run build
+
+    # 本番サーバーの起動
+    npm start
+    ```
+- 変更が発生するファイルは全て出力すること
+- 要求文書を適切な表現にブラッシュアップすること
 - UIの構成要素を言語化し、各コンポーネントとソースファイルの位置付けを明確にすること
-- 新規にインストールが必要な場合、ライブラリのインストール方法を明確にすること
-- 新規にファイル作成が必要な場合、名称と拡張子も明確にしソースコードをフルで出力すること
+- 新規インストールが必要ライブラリは、インストール方法を明確にすること
 - git への commit コメントを出力すること
 
-### 要求
+# 出力フォーマット
+- 出力結果はmarkdown形式とすること
+- 出力結果は下記のフォーマットに従うこと
+    ```
+    ---
+    # 要求概要
+    ## 要求
+    <ブラッシュアップ後の要求文書>
+    ## git commit コメント
+    <git commit コメント>
+    ---
+    # 変更
+    ## 変更概要
+    <変更概要>
+    ---
+    ## ./README.md
+    ### 変更内容
+    <変更内容>
+    ### ./README.md
+    ```md
+        <変更後のREADME.md *README.mdのみ全体をインデントしたものを出力すること。また、README.md内のコードブロックはコードブロック全体をさらにインデントすること。>
+    ```
+    ---
+    ## ./package.json
+    ### 変更内容
+    <変更内容>
+    ### ./package.json
+    ```json
+    <変更後のpackage.json>
+    ```
+    ---
+    ## ./tsconfig.json
+    ### 変更内容
+    <変更内容>
+    ### ./tsconfig.json
+    ```json
+    <変更後のtsconfig.json>
+    ```
+    ---
+    ## ./src/xxx.tsx
+    ### 変更内容
+    <変更内容>
+    ### ./src/xxx.tsx
+    ```tsx
+    <変更後の./src/xxx.tsx>
+    ```
+    ---
+    ## ./src/yyy.tsx
+    ### 変更内容
+    新規作成
+    ### ./src/yyy.tsx
+    ```tsx
+    <変更後の./src/xxx.tsx>
+    ```
+    ---
+    ## ./src/zzz.css
+    ### 変更内容
+    <変更内容>
+    ### ./src/zzz.css
+    ```css
+    <変更後の./src/zzz.css>
+    ```
+    ---
+    ```
+
+# 要求仕様書
 {_input}
 
-### 現在のpackage.json
+# 現在の管理ファイル
 {fetch_libraryfiles_and_contents(_libraryFileList)}
 
-### 現在のソースコード
+# 現在のソースコード
 {fetch_files_and_contents(_src_root_path, _ignorelist)}
 
     """

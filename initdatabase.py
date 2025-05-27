@@ -7,15 +7,13 @@ def initdata():
         "gpt",
         {
             "gpt_model": [
-                "chatgpt-4o-latest",
-                "gpt-4o-mini",
-                "o1-mini",
-                "o1-preview",
-                "gemini-1.5-flash",
-                "gemini-1.5-pro",
-                "gemini-2.0-flash-exp",
-                "claude-3-sonnet-20240229",
-                "claude-3-haiku-20240307"
+                "claude-sonnet-4-20250514",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "o4-mini",
+                "o3",
+                "gemini-2.5-flash-preview-05-20",
+                "gemini-2.5-pro-preview-05-06"
             ]
         }
     )
@@ -28,11 +26,17 @@ def initdata():
             "Next.js_1": {
                 "srcdire": "src",
                 "libraryFileList": [
-                    "package.json"
+                    "eslint.config.mjs",
+                    "next-env.d.ts",
+                    "next.config.ts",
+                    "postcss.config.mjs",
+                    "package.json",
+                    "tsconfig.json"
                 ],
-                "prerequisites": "ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のチャット体験を提供します。",
-                "system_role": "あなたは優秀なNext.jsのフロントエンドエンジニアです。入力された情報を元に最高のコードをアウトプットします。",
+                "prerequisites": "- ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のチャット体験を提供します。",
+                "system_role": "あなたは世界一優秀なNext.jsのフロントエンドエンジニアです。入力された情報を元に最高のコードをアウトプットします。",
                 "ignorelist": [
+                    "*.ico",
                     ".DS_Store"
                 ],
                 "prompt": "nextjstemplate1"
@@ -40,12 +44,20 @@ def initdata():
             "Next.js_2": {
                 "srcdire": "src",
                 "libraryFileList": [
-                    "package.json"
+                    "eslint.config.mjs",
+                    "next-env.d.ts",
+                    "next.config.ts",
+                    "postcss.config.mjs",
+                    "package.json",
+                    "tsconfig.json"
                 ],
                 "prerequisites": "ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のユーザー体験を提供します。",
                 "system_role": "あなたは優秀なNext.jsのフロントエンドエンジニアです。入力された情報を元に最高のコードをアウトプットします。",
                 "ignorelist": [
-                    ".DS_Store"
+                    "public/",
+                    ".DS_Store",
+                    "*.ico"
+                    ""
                 ],
                 "prompt": "nextjstemplate2"
             },

@@ -44,6 +44,8 @@ class MyHistoryOrms:
     db = {}
     
     def __init__(self):
+        if not os.path.exists(self.dbpath):
+            os.makedirs(self.dbpath)
         for a in self.GetDatabaseList():
             self.db[a] = MyHistoryOrm(a)
         # self.db["myHistory"] = MyHistoryOrm("myHistory")
