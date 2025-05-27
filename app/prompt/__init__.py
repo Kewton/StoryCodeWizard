@@ -108,7 +108,7 @@ def nextjstemplate1(_prerequisites, _input, _libraryFileList, _src_root_path, _i
     <変更内容>
     ### ./README.md
     ```md
-        <変更後のREADME.md *README.mdのみ全体をインデントしたものを出力すること。また、README.md内のコードブロックはコードブロック全体をさらにインデントすること。>
+    <変更後のREADME.md ・・・README.mdのみ全体をインデントしたものを出力すること。また、README.md内のコードブロックはインデントすること。>
     ```
     ---
     ## ./package.json

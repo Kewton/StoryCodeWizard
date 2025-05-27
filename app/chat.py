@@ -310,7 +310,7 @@ def project():
     projects = getProjectList()
     if projects:
         for project_name in projects:
-            st.write(f"- {project_name}")
+            st.write(f"- プロジェクト名 : {project_name}, ディレクトリパス : {getPjdirByPjnm(project_name)}")
             if st.button(f"削除 '{project_name}'", key=project_name):
                 dropProject(project_name)
                 deletePjSettingsByKey(project_name)
