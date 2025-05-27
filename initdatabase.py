@@ -22,7 +22,7 @@ def initdata():
         "chat",
         "systemrole",
         {
-            "プログラミング言語": ["FastAPI", "Next.js_1", "Next.js_2"],
+            "プログラミング言語": ["Next.js_1", "FastAPI", "Next.js_2"],
             "Next.js_1": {
                 "srcdire": "src",
                 "libraryFileList": [
@@ -33,7 +33,7 @@ def initdata():
                     "package.json",
                     "tsconfig.json"
                 ],
-                "prerequisites": "- ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のチャット体験を提供します。",
+                "prerequisites": " ディレクトリにてNext.jsのフロントエンドを開発しています。利用者に最高のチャット体験を提供します。",
                 "system_role": "あなたは世界一優秀なNext.jsのフロントエンドエンジニアです。入力された情報を元に最高のコードをアウトプットします。",
                 "ignorelist": [
                     "*.ico",

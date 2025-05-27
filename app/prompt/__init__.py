@@ -51,7 +51,7 @@ def nextjstemplate1(_prerequisites, _input, _libraryFileList, _src_root_path, _i
 - 現在のソースコードと要求に対し前提条件と制約条件を満たす最高の成果物を生成してください。
 
 # 前提条件
-{_prerequisites}
+- {_prerequisites}
 - node.jsのバージョンはv23.11.0を使用しています。
 - npmのバージョンは10.9.2を使用しています。
 - Next.jsのプロジェクト登録は下記コマンドを実行しているものとします。

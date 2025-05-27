@@ -38,6 +38,10 @@ def isChatGPTImageAPI(_selected_model):
         return True
     elif "o1" in _selected_model:
         return True
+    elif "o2" in _selected_model:
+        return True
+    elif "o3" in _selected_model:
+        return True
     else:
         return False
 

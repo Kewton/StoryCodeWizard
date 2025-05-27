@@ -7,6 +7,7 @@ from app.prompt import createPromt
 from app.util.execLlmApi import execLlmApi
 import base64
 import os
+import subprocess
 
 
 # sesson state key
@@ -203,7 +204,7 @@ def historyArea():
                     st.session_state.confirmed = False
 
                 # ボタンを横に並べるためにcolumnsを使用
-                button_col1, button_col2, button_col3 = st.columns(3)
+                button_col1, button_col2, button_col3, button_col4 = st.columns(4)
 
                 # Delete History Recordボタン
                 with button_col1:
@@ -228,6 +229,35 @@ def historyArea():
                         file_name=f"chat_history_{df['gptmodel'][selected_index]}_{df['registration_date'][selected_index]}_agent.md",
                         mime="text/plain"
                     )
+
+                with button_col4:
+                    # 1. ボタン追加
+                    if st.button("プロジェクトに反映"):
+                        # 2. get_download_assistant_str(messages)を実行
+                        download_str_assistant = get_download_assistant_str(messages)
+                        # 保存先ディレクトリ
+                        temp_dir = "./temp"
+                        os.makedirs(temp_dir, exist_ok=True)
+                        # ファイル名生成
+                        file_name = f"chat_history_{df['gptmodel'][selected_index]}_{df['registration_date'][selected_index]}_agent.md"
+                        file_path = os.path.join(temp_dir, file_name)
+                        # ファイル保存
+                        with open(file_path, "w", encoding="utf-8") as f:
+                            f.write(download_str_assistant)
+                        st.success(f"ファイルを {file_path} に保存しました。")
+
+                        # プロジェクトディレクトリ取得
+                        pjdir = getPjdirByPjnm(selected_project)
+
+                        # 3. コマンド実行
+                        cmd = f"python generate_files.py {os.path.abspath(file_path)} -d {pjdir}"
+                        try:
+                            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                            st.info(f"コマンド実行結果: {result.stdout}")
+                            if result.stderr:
+                                st.error(f"エラー: {result.stderr}")
+                        except Exception as e:
+                            st.error(f"コマンド実行時に例外が発生しました: {e}")
 
                 # Yes/No の選択と確認ボタンの表示
                 if st.session_state.show_choices and not st.session_state.confirmed:
