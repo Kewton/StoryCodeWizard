@@ -27,10 +27,17 @@ pip install -r requirements.txt
 
 # run
 ```
+# 設定ファイル初期化
 python initdatabase.py
+
+# 起動
 streamlit run run.py
 ```
 
+# 参考
+
+## Next.js
+Next.jsは下記コマンドによるプロジェクト作成を前提とする
 ```
 npx create-next-app@latest myux \
   --app \
@@ -40,8 +47,4 @@ npx create-next-app@latest myux \
   --src-dir
 ```
 
-```
-python generate_files.py ./myproject/history/chat_history_claude-sonnet-4-20250514_2025-05-27_09_34_55_agent.md -d ./myproject/myux
-```
-
-<変更後のREADME.md *README.mdのみ全体をインデントしたものを出力すること。また、README.md内のコードブロックはコードブロック全体をさらにインデントすること。>
+python generate_files.py ./chat_history_claude-sonnet-4-20250514_2025-05-30_23_52_20_agent.md -d /Users/maeno.kota/work/git/storycodewizardnext
